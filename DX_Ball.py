@@ -5,6 +5,8 @@ from OpenGL.GLU import *
 W_width = 800
 W_height = 600
 
+x=550
+
 def draw_points(x, y):
     glPointSize(5) #pixel size. by default 1 thake
     glBegin(GL_POINTS)
@@ -13,7 +15,16 @@ def draw_points(x, y):
 
 
 def display():
-    draw_points(700,550)
+    draw_points(700,x)
+
+
+def animate(value):
+    global x
+    x -= 1
+
+    glutPostRedisplay()
+    glutTimerFunc(16, animate, 0)
+
 
 def iterate():
     global W_height,W_width
@@ -43,6 +54,7 @@ glutInitWindowSize(W_width, W_height) #window size
 glutInitWindowPosition(0, 0)
 wind = glutCreateWindow(b"DX_Ball CSE423-Project") #window name
 glutDisplayFunc(showScreen)
+glutTimerFunc(16, animate, 0)
 
 
 glutMainLoop()
