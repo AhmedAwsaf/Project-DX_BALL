@@ -32,10 +32,11 @@ def draw_line(x1, y1, x2, y2):
 
 def draw_rectangle(x, y, width, height):
     # Draw rectangle using lines
-    draw_line(x, y, x + width, y)
-    draw_line(x + width, y, x + width, y + height)
-    draw_line(x + width, y + height, x, y + height)
-    draw_line(x, y + height, x, y)
+    for i in range(height):
+        draw_line(x, y-i, x + width, y-i)
+    # draw_line(x + width, y, x + width, y + height)
+    # draw_line(x + width, y + height, x, y + height)
+    # draw_line(x, y + height, x, y)
 
 def draw_paddle():
     global paddle_x
