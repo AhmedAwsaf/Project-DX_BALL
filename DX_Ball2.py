@@ -6,7 +6,9 @@ import random
 W_width = 800
 W_height = 600
 
+paddleobj = 0
 paddle_x = 350
+paddle_y = 30
 paddle_width = 100
 paddle_height = 10
 
@@ -21,7 +23,8 @@ brick_types = [1, 2, 3]  # 0: Iron, 1: Regular, 2: Wooden
 brick_colors = {
     1: [1,0,0],
     2: [1,0,1],
-    3: [0.5,0.5,0.5]
+    3: [0.5,0.5,0.5],
+    4: [1,1,1]
 }
 
 paused = False  # Game state for pause/play
@@ -85,6 +88,17 @@ def draw_bricks():
         glColor3f(r,g,b)
         draw_rectangle(brick.x,brick.y,brick.w,brick.h)
 
+def draw_paddle():
+    global paddleobj,brick_colors
+    r,g,b =brick_colors[paddleobj.ty]
+    glColor3f(r,g,b)
+    draw_rectangle(paddleobj.x,paddleobj.y,paddleobj.w,paddleobj.h)
+
+def mouse_motion(x, y):
+    global paddleobj
+    paddleobj.x = x - paddle_width // 2
+    paddleobj.x = max(0, min(W_width - paddle_width, paddleobj.x ))
+
 def animate():
     pass
 
@@ -93,8 +107,10 @@ def display():
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     draw_bricks()
 
+    draw_paddle()
+
 def intializeLevel():
-    global level0,brick_height,brick_width,bricks,W_height,W_width
+    global level0,brick_height,brick_width,bricks,W_height,W_width,paddleobj,paddle_height,paddle_width,paddle_x,paddle_y
     leftp = (W_width-len(level0[0])*(brick_width+5))//2
     for y in range(len(level0)):
         for x in range(len(level0[0])):
@@ -103,6 +119,8 @@ def intializeLevel():
             xp = leftp + x*(brick_width+5)
             yp = W_height - 20 - y*(brick_height+5)
             bricks.append(Brick(xp,yp,level0[y][x],brick_width,brick_height))
+    
+    paddleobj = Brick(paddle_x,paddle_y,4,paddle_width,paddle_height)
 
 
 def iterate():
@@ -136,7 +154,7 @@ intializeLevel()
 
 glutDisplayFunc(showScreen)
 # glutKeyboardFunc(keyboard)
-# glutPassiveMotionFunc(mouse_motion)
-glutTimerFunc(16, timer, 0) 
+glutPassiveMotionFunc(mouse_motion)
+glutTimerFunc(8, timer, 0) 
 
 glutMainLoop()
