@@ -102,7 +102,6 @@ def mouse_motion(x, y):
 
     # Keep paddle within window bounds
     paddle_x = max(0, min(W_width - paddle_width, paddle_x))
-    glutPostRedisplay()
 
 def update_ball():
     global ball_x, ball_y, ball_dx, ball_dy, bricks, brick_health, paused
@@ -184,7 +183,7 @@ def showScreen():
 def timer(value):
     update_ball()
     glutPostRedisplay()
-    glutTimerFunc(10, timer, 0)  # Faster timer
+    glutTimerFunc(16, timer, 0) 
 
 glutInit()
 glutInitDisplayMode(GLUT_RGBA)
@@ -194,6 +193,6 @@ wind = glutCreateWindow(b"DX_Ball CSE423-Project")  # Window name
 glutDisplayFunc(showScreen)
 glutKeyboardFunc(keyboard)  # Register keyboard function
 glutPassiveMotionFunc(mouse_motion)  # Register mouse motion function
-glutTimerFunc(10, timer, 0)  # Timer for ball updates
+glutTimerFunc(16, timer, 0)  # Timer for ball updates
 
 glutMainLoop()
