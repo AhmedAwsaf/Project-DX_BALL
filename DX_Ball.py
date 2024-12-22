@@ -35,6 +35,34 @@ for row in range(triangle_base):
         elif brick_type == 2:  # Wooden bricks need 1 hit
             brick_health[(brick_x, brick_y)] = 1
 
+def midpoint_circle(x_center, y_center, radius):
+    x = radius
+    y = 0
+    p = 1 - radius
+
+    points = []
+
+    while x >= y:
+        points.extend([(x_center + x, y_center + y), (x_center + y, y_center + x),
+                       (x_center - y, y_center + x), (x_center - x, y_center + y),
+                       (x_center - x, y_center - y), (x_center - y, y_center - x),
+                       (x_center + y, y_center - x), (x_center + x, y_center - y)])
+
+        y += 1
+        if p < 0:
+            p += 2 * y + 1
+        else:
+            x -= 1
+            p += 2 * (y - x) + 1
+
+    return points
+
+def draw_circle(x, y, radius):
+    points = midpoint_circle(x, y, radius)
+    glBegin(GL_POINTS)
+    for point in points:
+        glVertex2f(point[0], point[1])
+    glEnd()
 
 def draw_line(x1, y1, x2, y2):
     dx = abs(x2 - x1)
@@ -57,10 +85,30 @@ def draw_line(x1, y1, x2, y2):
             y1 += sy
     glEnd()
 
-def draw_rectangle(x, y, width, height):
-    # Draw rectangle using lines
+def draw_gradient_rectangle(x, y, width, height, color_start, color_end):
+    # Draw rectangle using horizontal lines with gradient effect
+    r1, g1, b1 = color_start
+    r2, g2, b2 = color_end
     for i in range(height):
-        draw_line(x, y-i, x + width, y-i)
+        t = i / height
+        r = r1 * (1 - t) + r2 * t
+        g = g1 * (1 - t) + g2 * t
+        b = b1 * (1 - t) + b2 * t
+        glColor3f(r, g, b)
+        draw_line(x, y - i, x + width, y - i)
+
+def draw_bricks():
+    for idx, brick in enumerate(bricks):
+        brick_x, brick_y, brick_type = brick
+        if brick_type == 0:  # Iron brick
+            draw_gradient_rectangle(brick_x, brick_y, brick_width, brick_height, (0.5, 0.5, 0.5), (0.3, 0.3, 0.3))
+        elif brick_type == 1:  # Regular brick
+            if brick_health[(brick_x, brick_y)] == 2:
+                draw_gradient_rectangle(brick_x, brick_y, brick_width, brick_height, (0.0, 0.0, 1.0), (0.0, 0.0, 0.7))
+            elif brick_health[(brick_x, brick_y)] == 1:
+                draw_gradient_rectangle(brick_x, brick_y, brick_width, brick_height, (0.5, 0.5, 1.0), (0.3, 0.3, 0.7))
+        elif brick_type == 2:  # Wooden brick
+            draw_gradient_rectangle(brick_x, brick_y, brick_width, brick_height, (0.6, 0.3, 0.1), (0.4, 0.2, 0.1))
 
 def draw_text(x, y, text):
     glRasterPos2f(x, y)
@@ -74,26 +122,12 @@ def draw_paddle():
 
 def draw_ball():
     glColor3f(1.0, 0.0, 0.0)  # Ball color - red
-    glBegin(GL_POINTS)
-    for i in range(-ball_radius, ball_radius):
-        for j in range(-ball_radius, ball_radius):
-            if i**2 + j**2 <= ball_radius**2:
-                glVertex2f(ball_x + i, ball_y + j)
-    glEnd()
+    draw_circle(ball_x, ball_y, ball_radius)
 
-def draw_bricks():
-    for brick in bricks:
-        brick_x, brick_y, brick_type = brick
-        if brick_type == 0:  # Iron brick
-            glColor3f(0.5, 0.5, 0.5)  # Gray
-        elif brick_type == 1:  # Regular brick
-            if brick_health[(brick_x, brick_y)] == 2:
-                glColor3f(0.0, 0.0, 1.0)  # Blue
-            elif brick_health[(brick_x, brick_y)] == 1:
-                glColor3f(0.5, 0.5, 1.0)  # Light Blue
-        elif brick_type == 2:  # Wooden brick
-            glColor3f(0.6, 0.3, 0.1)  # Brown
-        draw_rectangle(brick_x, brick_y, brick_width, brick_height)
+def draw_rectangle(x, y, width, height):
+    # Draw rectangle using lines
+    for i in range(height):
+        draw_line(x, y-i, x + width, y-i)
 
 def mouse_motion(x, y):
     global paddle_x
