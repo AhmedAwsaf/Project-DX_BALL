@@ -41,6 +41,88 @@ level0 = [
     [0,0,0,0,0,0,0,1,0,0,1],
 ]
 
+newDig = [W_width-20, W_height-20]
+newTimDig = [W_width-20, W_height-50]
+changeDigx = -20
+score = 1234567890
+time = 0
+timecounter = 0
+numbers = []
+timenumbers = []
+
+scoreboard={
+    0:[
+         1,
+        1,1,
+         0,
+        1,1,
+         1
+    ],
+    1:[
+         0,
+        0,1,
+         0,
+        0,1,
+         0
+    ],
+    2:[
+         1,
+        0,1,
+         1,
+        1,0,
+         1
+    ],
+    3:[
+         1,
+        0,1,
+         1,
+        0,1,
+         1
+    ],
+    4:[
+         0,
+        1,1,
+         1,
+        0,1,
+         0
+    ],
+    5:[
+         1,
+        1,0,
+         1,
+        0,1,
+         1
+    ],
+    6:[
+         1,
+        1,0,
+         1,
+        1,1,
+         1
+    ],
+    7:[
+         1,
+        0,1,
+         0,
+        0,1,
+         0
+    ],
+    8:[
+         1,
+        1,1,
+         1,
+        1,1,
+         1
+    ],
+    9:[
+         1,
+        1,1,
+         1,
+        0,1,
+         1
+    ],
+}
+
 def draw_points(x, y, w=4):
     glPointSize(w)
     glBegin(GL_POINTS)
@@ -67,7 +149,6 @@ def draw_line(x1, y1, x2, y2):
             y1 += sy
 
 def draw_rectangle(x, y, width, height):
-    
     for i in range(height):
         draw_line(x, y-i, x + width, y-i)
 
@@ -79,6 +160,34 @@ class Brick:
         self.li = li
         self.w = w
         self.h = h
+
+class Number:
+    def __init__(self,x,y,num, w=10):
+        self.x = x
+        self.y = y
+        self.num = num
+        self.w = w
+    def draw(self):
+        global scoreboard
+        x,y,w = self.x,self.y,self.w
+        scoreboardarr = scoreboard[self.num]
+
+        Scoreline = {
+            0: [x+w//2,y+w,x-w//2,y+w],
+            1: [x-w//2,y+w,x-w//2,y],
+            2: [x+w//2,y+w,x+w//2,y],
+            3: [x+w//2,y,x-w//2,y],
+            4: [x-w//2,y,x-w//2,y-w],
+            5: [x+w//2,y,x+w//2,y-w],
+            6: [x-w//2,y-w,x+w//2,y-w]
+        }
+
+        
+        for i in range(len(scoreboardarr)):
+            if scoreboardarr[i] == 1:
+                x1,y1,x2,y2 = Scoreline[i]
+                draw_line(x1,y1,x2,y2)
+
 
 def draw_bricks():
     global bricks,brick_colors
@@ -94,13 +203,73 @@ def draw_paddle():
     glColor3f(r,g,b)
     draw_rectangle(paddleobj.x,paddleobj.y,paddleobj.w,paddleobj.h)
 
+def draw_score():
+    global numbers
+    glColor3f(0.2,1,0.4)
+    for number in numbers:
+        number.draw()
+
+def check_score():
+    global score, numbers, newDig, changeDigx
+    temp_score = score
+    n = 0
+
+    while temp_score > 0:
+        rem = temp_score % 10
+        temp_score = temp_score // 10
+        n += 1
+
+        if len(numbers) < n:
+            numbers.append(Number(newDig[0], newDig[1], 0))
+            newDig[0] += changeDigx
+
+        numbers[n-1].num = rem
+
+    for i in range(n, len(numbers)):
+        numbers[i].num = 0
+
+def draw_time():
+    global timenumbers
+    glColor3f(1,0.5,0.6)
+    for number in timenumbers:
+        number.draw()
+
+def check_time():
+    global time, timenumbers, newTimDig, changeDigx
+    temp_score = time
+    n = 0
+
+    while temp_score > 0:
+        rem = temp_score % 10
+        temp_score = temp_score // 10
+        n += 1
+
+        if len(timenumbers) < n:
+            timenumbers.append(Number(newTimDig[0], newTimDig[1], 0))
+            newTimDig[0] += changeDigx
+
+        timenumbers[n-1].num = rem
+
+    for i in range(n, len(timenumbers)):
+        timenumbers[i].num = 0
+
+
+
+
 def mouse_motion(x, y):
     global paddleobj
     paddleobj.x = x - paddle_width // 2
     paddleobj.x = max(0, min(W_width - paddle_width, paddleobj.x ))
 
 def animate():
-    pass
+    global timecounter,time
+    timecounter += 1
+    if timecounter >= 10:
+        time += 1
+        timecounter = 0
+
+    check_time()
+    check_score()
 
 def display():
     glClearColor(0.1, 0.1, 0.1, 1.0)
@@ -108,6 +277,8 @@ def display():
     draw_bricks()
 
     draw_paddle()
+    draw_score()
+    draw_time()
 
 def intializeLevel():
     global level0,brick_height,brick_width,bricks,W_height,W_width,paddleobj,paddle_height,paddle_width,paddle_x,paddle_y
