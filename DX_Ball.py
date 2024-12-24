@@ -35,27 +35,27 @@ for row in range(triangle_base):
         elif brick_type == 2:  # Wooden bricks need 1 hit
             brick_health[(brick_x, brick_y)] = 1
 
-def midpoint_circle(x_center, y_center, radius):
-    x = radius
-    y = 0
-    p = 1 - radius
+# def midpoint_circle(x_center, y_center, radius):
+#     x = radius
+#     y = 0
+#     p = 1 - radius
 
-    points = []
+#     points = []
 
-    while x >= y:
-        points.extend([(x_center + x, y_center + y), (x_center + y, y_center + x),
-                       (x_center - y, y_center + x), (x_center - x, y_center + y),
-                       (x_center - x, y_center - y), (x_center - y, y_center - x),
-                       (x_center + y, y_center - x), (x_center + x, y_center - y)])
+#     while x >= y:
+#         points.extend([(x_center + x, y_center + y), (x_center + y, y_center + x),
+#                        (x_center - y, y_center + x), (x_center - x, y_center + y),
+#                        (x_center - x, y_center - y), (x_center - y, y_center - x),
+#                        (x_center + y, y_center - x), (x_center + x, y_center - y)])
 
-        y += 1
-        if p < 0:
-            p += 2 * y + 1
-        else:
-            x -= 1
-            p += 2 * (y - x) + 1
+#         y += 1
+#         if p < 0:
+#             p += 2 * y + 1
+#         else:
+#             x -= 1
+#             p += 2 * (y - x) + 1
 
-    return points
+#     return points
 
 def draw_circle(x, y, radius):
     points = midpoint_circle(x, y, radius)
@@ -119,10 +119,31 @@ def draw_paddle():
     global paddle_x
     glColor3f(0.3, 0.7, 0.9)  # Paddle color - light blue
     draw_rectangle(paddle_x, 50, paddle_width, paddle_height)
-
 def draw_ball():
     glColor3f(1.0, 0.0, 0.0)  # Ball color - red
-    draw_circle(ball_x, ball_y, ball_radius)
+    radius = ball_radius
+    x_center = ball_x
+    y_center = ball_y
+
+    x = radius
+    y = 0
+    p = 1 - radius
+
+    # Loop to draw horizontal lines for filling
+    while x >= y:
+        # Draw horizontal lines between symmetric points
+        draw_line(x_center - x, y_center + y, x_center + x, y_center + y)  # Upper part
+        draw_line(x_center - y, y_center + x, x_center + y, y_center + x)  # Upper part
+        draw_line(x_center - x, y_center - y, x_center + x, y_center - y)  # Lower part
+        draw_line(x_center - y, y_center - x, x_center + y, y_center - x)  # Lower part
+
+        y += 1
+        if p < 0:
+            p += 2 * y + 1
+        else:
+            x -= 1
+            p += 2 * (y - x) + 1
+
 
 def draw_rectangle(x, y, width, height):
     # Draw rectangle using lines
