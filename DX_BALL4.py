@@ -5,7 +5,12 @@ import random
 
 W_width = 800
 W_height = 600
-
+###########BALL PART################
+ball_x, ball_y = 400, 300
+ball_dx, ball_dy = 10, 10  # Adjust speed as needed
+ball_radius = 10
+paused = False  # Pause state
+#########BALLL PART END#############
 paddleobj = 0
 paddle_x = 350
 paddle_y = 30
@@ -196,7 +201,78 @@ def draw_bricks():
         r,g,b = brick_colors[brick.ty]
         glColor3f(r,g,b)
         draw_rectangle(brick.x,brick.y,brick.w,brick.h)
+def timer(value):
+    update_ball()
+    glutPostRedisplay()
+    glutTimerFunc(16, timer, 0)
+###### ADDING NEW BALL PART ################
+def draw_ball():
+    glColor3f(1.0, 0.0, 0.0)  # Ball color - red
+    radius = ball_radius
+    x_center = ball_x
+    y_center = ball_y
 
+    x = radius
+    y = 0
+    p = 1 - radius
+
+    while x >= y:
+        draw_line(x_center - x, y_center + y, x_center + x, y_center + y)  # Upper
+        draw_line(x_center - y, y_center + x, x_center + y, y_center + x)  # Upper
+        draw_line(x_center - x, y_center - y, x_center + x, y_center - y)  # Lower
+        draw_line(x_center - y, y_center - x, x_center + y, y_center - x)  # Lower
+
+        y += 1
+        if p < 0:
+            p += 2 * y + 1
+        else:
+            x -= 1
+            p += 2 * (y - x) + 1
+def check_brick_collision():
+    global ball_dx, ball_dy, bricks
+
+    for brick in bricks[:]:  # Iterate over a copy to modify the original list
+        # Check if the ball is within the bounds of the brick
+        if (brick.x <= ball_x + ball_radius <= brick.x + brick.w or
+            brick.x <= ball_x - ball_radius <= brick.x + brick.w) and \
+           (brick.y <= ball_y + ball_radius <= brick.y + brick.h or
+            brick.y <= ball_y - ball_radius <= brick.y + brick.h):
+            
+            if ball_y + ball_radius >= brick.y and ball_y - ball_radius <= brick.y + brick.h:
+                ball_dy = -ball_dy  
+            else:
+                ball_dx = -ball_dx  
+
+            if brick.ty > 1:
+                brick.ty -= 1  
+            else:
+                bricks.remove(brick)  
+            break  
+
+def update_ball():
+    global ball_x, ball_y, ball_dx, ball_dy, paused
+
+    if paused:
+        return  
+
+    # Move the ball
+    ball_x += ball_dx
+    ball_y += ball_dy
+
+    # Wall collisions
+    if ball_x - ball_radius <= 0 or ball_x + ball_radius >= W_width:
+        ball_dx = -ball_dx 
+    if ball_y + ball_radius >= W_height:
+        ball_dy = -ball_dy 
+
+    # Paddle collision
+    if paddle_y <= ball_y - ball_radius <= paddle_y + paddle_height:
+        if paddle_x <= ball_x <= paddle_x + paddle_width:
+            ball_dy = -ball_dy  
+
+    
+    check_brick_collision()
+########### ADDID NEW END####################
 def draw_paddle():
     global paddleobj,brick_colors
     r,g,b =brick_colors[paddleobj.ty]
@@ -242,34 +318,31 @@ def draw_hill():
     hill_left_x = 0
     hill_right_x = W_width
 
-    # Loop through the hill's triangular area and plot points
     for y in range(hill_base_y, hill_peak_y + 1):
-        # Compute the left and right bounds for the hill at the current height
         x_start = int(hill_left_x + (hill_peak_x - hill_left_x) * (y / hill_peak_y))
         x_end = int(hill_right_x - (hill_right_x - hill_peak_x) * (y / hill_peak_y))
         for x in range(x_start, x_end + 1):
-            draw_points(x, y)  # Draw a point at the current location
+            draw_points(x, y)  
 def draw_tree(x, y, trunk_width, trunk_height, foliage_radius):
     # Draw trunk
-    glColor3f(0.2, 0.1, 0.0)  # Trunk color (dark brown)
+    glColor3f(0.2, 0.1, 0.0)  
     for i in range(trunk_height):
         for j in range(-trunk_width // 2, trunk_width // 2 + 1):
             draw_points(x + j, y + i)
 
-    # Draw foliage
+   
     glColor3f(0.0, 0.4, 0.0)  # Foliage color (green)
     for i in range(-foliage_radius, foliage_radius + 1):
         for j in range(-foliage_radius, foliage_radius + 1):
             if i**2 + j**2 <= foliage_radius**2:
                 draw_points(x + j, y + trunk_height + i)
 def draw_treehouse(x, y, house_width, house_height):
-    # Draw the house base
     glColor3f(0.5, 0.35, 0.2)  # House color (wooden brown)
     for i in range(house_height):
         for j in range(-house_width // 2, house_width // 2 + 1):
             draw_points(x + j, y + i)
 
-    # Draw the roof
+  
     glColor3f(0.3, 0.2, 0.1)  # Roof color (dark brown)
     roof_height = house_height // 2
     for i in range(roof_height):
@@ -279,7 +352,7 @@ def draw_treehouse(x, y, house_width, house_height):
             draw_points(j, y + house_height + i)
 
 def draw_treehouse(x, y, house_width, house_height):
-    # Draw the house base
+   
     glColor3f(0.5, 0.35, 0.2)  # House color (wooden brown)
     for i in range(house_height):
         for j in range(-house_width // 2, house_width // 2 + 1):
@@ -400,7 +473,7 @@ def display():
 
     draw_hill()  # Draw the background hill
     draw_scene_elements()  # Draw trees, treehouse, birds, and text
-
+    draw_ball()
     draw_bricks()
     draw_paddle()
     draw_score()
@@ -437,9 +510,10 @@ def showScreen():
     glutSwapBuffers()
 
 def timer(value):
+    update_ball()
     animate()
     glutPostRedisplay()
-    glutTimerFunc(16, timer, 0) 
+    glutTimerFunc(16, timer, 0)
 
 glutInit()
 glutInitDisplayMode(GLUT_RGBA)
@@ -452,6 +526,6 @@ intializeLevel()
 glutDisplayFunc(showScreen)
 # glutKeyboardFunc(keyboard)
 glutPassiveMotionFunc(mouse_motion)
-glutTimerFunc(8, timer, 0) 
+glutTimerFunc(16, timer, 0) 
 
 glutMainLoop()
