@@ -17,13 +17,15 @@ paddle_width = 100
 paddle_height = 10
 
 ball_x, ball_y = 400, 300
-ball_dx, ball_dy = 6, 6  # Increased speed
+ball_speed = 6
+ball_dx, ball_dy = -6, -6 
 ball_radius = 10
 
-bricks = []  # List to store bricks
+
+bricks = []  
 brick_width = 60
 brick_height = 20
-brick_types = [1, 2, 3]  # 0: Iron, 1: Regular, 2: Wooden
+brick_types = [1, 2, 3] 
 brick_colors = {
     1: (0.9, 0.3, 0.1),    # Brick Type 1: Red-Orange
     2: (0.1, 1.0, 1.0),    # Brick Type 2: Cyan (Damage Brick)
@@ -32,7 +34,7 @@ brick_colors = {
     5: (0.3, 0.3, 0.7)     # Brick Type 5: Dark Blue (Damage Brick 2)
 }
 
-paused = False  # Game state for pause/play
+paused = False 
 
 level0 = [
     [0,0,0,0,0,1,0,0,0,0,0],
@@ -201,11 +203,11 @@ def draw_ball():
         draw_line(x_center - x, y_center - y, x_center + x, y_center - y) 
         draw_line(x_center - y, y_center - x, x_center + y, y_center - x) 
 
-        y += 1
+        y += 2
         if p < 0:
             p += 2 * y + 1
         else:
-            x -= 1
+            x -= 2
             p += 2 * (y - x) + 1
 
 class Brick:
@@ -378,11 +380,25 @@ def check_time():
 
 
 def update_ball():
-    global ball_x,ball_y,ball_dx,ball_dy,ball_radius
+    global ball_x,ball_y,ball_dx,ball_dy,ball_radius, W_width, W_height, paddleobj, ball_speed
     ball_x += ball_dx
     ball_y += ball_dy
     
     # paddle
+    if ball_y - ball_radius < paddleobj.y + paddleobj.h:
+        if paddleobj.x <= ball_x <= paddleobj.x + paddleobj.w:
+            relative_intersection = (ball_x - (paddleobj.x + paddleobj.w // 2)) / (paddleobj.w // 2)
+
+            ball_dy *= -1
+
+            ball_dx = relative_intersection * ball_speed 
+
+    
+    # bound
+    if ball_x - ball_radius < 0 or ball_x + ball_radius > W_width:
+        ball_dx = -ball_dx
+    if ball_y + ball_radius > W_height:
+        ball_dy = -ball_dy
     
 
 def mouse_motion(x, y):
@@ -401,6 +417,7 @@ def animate():
 
     check_time()
     check_score()
+    update_ball()
 
 def display():
     glClearColor(0.1, 0.1, 0.1, 1.0)
