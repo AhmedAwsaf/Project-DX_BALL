@@ -8,7 +8,7 @@ W_height = 600
 
 ball_x, ball_y = 400, 300
 ball_dx, ball_dy = 6, 6 
-ball_radius = 10
+ball_radius = 7
 
 paddleobj = 0
 paddle_x = 350
@@ -22,7 +22,8 @@ ball_dx, ball_dy = -6, -6
 ball_radius = 10
 
 
-bricks = []  
+bricks = [] 
+rembricks = [] 
 brick_width = 60
 brick_height = 20
 brick_types = [1, 2, 3] 
@@ -44,6 +45,8 @@ level0 = [
     [0,1,0,1,0,1,0,1,0,1,0],
     [1,0,2,0,1,0,1,0,1,0,1]
 ]
+levelblocks = 0
+levelblocksbroken = 0
 
 newDig = [W_width-20, W_height-20]
 newTimDig = [W_width-20, W_height-50]
@@ -188,7 +191,7 @@ def draw_circle(x,y,r,c,w=2):
 
 def draw_ball():
     global ball_y,ball_x,ball_radius
-    glColor3f(1.0, 0.4, 0.0) 
+    glColor3f(1.0, 1,1.0) 
     radius = ball_radius
     x_center = ball_x
     y_center = ball_y
@@ -334,7 +337,7 @@ def draw_background():
 #########################################################
 
 def check_score():
-    global score, numbers, newDig, changeDigx
+    global score, numbers, newDig, changeDigx, levelblocksbroken, levelblocks
     temp_score = score
     n = 0
 
@@ -351,6 +354,10 @@ def check_score():
 
     for i in range(n, len(numbers)):
         numbers[i].num = 0
+    
+    if levelblocksbroken>=levelblocks:
+        print("END")
+    
 
 def draw_time():
     global timenumbers
@@ -377,10 +384,42 @@ def check_time():
     for i in range(n, len(timenumbers)):
         timenumbers[i].num = 0
 
+def check_collision(ball_x, ball_y, ball_r, block):
+    # Ball boundaries
+    ball_left = ball_x - ball_r
+    ball_right = ball_x + ball_r
+    ball_top = ball_y - ball_r  # Top is smaller y
+    ball_bottom = ball_y + ball_r  # Bottom is larger y
+
+    # Block boundaries
+    block_left = block.x
+    block_right = block.x + block.w
+    block_top = block.y - block.h
+    block_bottom = block.y
+
+    # Check for collision
+    if ball_right > block_left and ball_left < block_right and ball_bottom > block_top and ball_top < block_bottom:
+        # Calculate overlap distances
+        overlap_x = min(ball_right - block_left, block_right - ball_left)
+        overlap_y = min(ball_bottom - block_top, block_bottom - ball_top)
+
+        # Determine collision side
+        if overlap_x < overlap_y:  # Smaller overlap determines side
+            if ball_x < block.x:
+                return "Left"
+            else:
+                return "Right"
+        else:
+            if ball_y < block.y:
+                return "Top"
+            else:
+                return "Bottom"
+    return None
+
 
 
 def update_ball():
-    global ball_x,ball_y,ball_dx,ball_dy,ball_radius, W_width, W_height, paddleobj, ball_speed
+    global ball_x,ball_y,ball_dx,ball_dy,ball_radius, W_width, W_height, paddleobj, ball_speed, bricks, rembricks, level0, brick_height , levelblocksbroken
     ball_x += ball_dx
     ball_y += ball_dy
     
@@ -399,12 +438,47 @@ def update_ball():
         ball_dx = -ball_dx
     if ball_y + ball_radius > W_height:
         ball_dy = -ball_dy
+        
+    #bricks
+    b_start = 100+(len(level0)*(brick_height+5))
+    
+    if W_height - b_start < ball_y + ball_radius:
+        for bricki in range(len(bricks)):
+            side = check_collision(ball_x,ball_y, ball_radius,bricks[bricki])
+            if side == None:
+                continue
+            if side == "Left" or side == "Right":
+                ball_dx = -ball_dx
+                rembricks.append(bricki)
+            if side =="Top" or side =="Bottom":
+                ball_dy = -ball_dy
+                rembricks.append(bricki)
+                
+    rembricks.reverse()
+    while rembricks != []:
+        i = rembricks[len(rembricks)-1]
+        brick = bricks[i]
+        if brick.ty == 2 and brick.li > 1:
+            print("damage")
+            brick.li -=1
+        elif brick.ty != 3:
+            bricks.pop(i)
+            levelblocksbroken += 1
+            
+        rembricks.pop()      
+        
     
 
 def mouse_motion(x, y):
-    global paddleobj
-    paddleobj.x = x - paddle_width // 2
-    paddleobj.x = max(0, min(W_width - paddle_width, paddleobj.x ))
+    global paddleobj, paused
+    if not paused:
+        paddleobj.x = x - paddle_width // 2
+        paddleobj.x = max(0, min(W_width - paddle_width, paddleobj.x ))
+
+def keyboard(key, x, y):
+    global paused
+    if key == b'p':  # Toggle pause
+        paused = not paused
     
     
 
@@ -431,15 +505,18 @@ def display():
     draw_ball()
 
 def intializeLevel():
-    global level0,brick_height,brick_width,bricks,W_height,W_width,paddleobj,paddle_height,paddle_width,paddle_x,paddle_y
+    global level0,levelblocks,brick_height,brick_width,bricks,W_height,W_width,paddleobj,paddle_height,paddle_width,paddle_x,paddle_y
     leftp = (W_width-len(level0[0])*(brick_width+5))//2
     for y in range(len(level0)):
         for x in range(len(level0[0])):
             if level0[y][x] == 0:
                 continue
+            elif level0[y][x] != 3:
+                levelblocks += 1
             xp = leftp + x*(brick_width+5)
             yp = W_height - 100 - y*(brick_height+5)
             bricks.append(Brick(xp,yp,level0[y][x],brick_width,brick_height))
+
     
     paddleobj = Brick(paddle_x,paddle_y,4,paddle_width,paddle_height)
 
@@ -461,7 +538,8 @@ def showScreen():
     glutSwapBuffers()
 
 def timer(value):
-    animate()
+    if not paused:
+        animate()
     glutPostRedisplay()
     glutTimerFunc(16, timer, 0) 
 
@@ -474,7 +552,7 @@ wind = glutCreateWindow(b"DX_Ball CSE423-Project")  # Window name
 intializeLevel()
 
 glutDisplayFunc(showScreen)
-# glutKeyboardFunc(keyboard)
+glutKeyboardFunc(keyboard)
 glutPassiveMotionFunc(mouse_motion)
 glutTimerFunc(16, timer, 0) 
 
