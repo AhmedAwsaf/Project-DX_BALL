@@ -119,8 +119,9 @@ def draw_paddle():
     global paddle_x
     glColor3f(0.3, 0.7, 0.9)  # Paddle color - light blue
     draw_rectangle(paddle_x, 50, paddle_width, paddle_height)
+
 def draw_ball():
-    glColor3f(1.0, 0.0, 0.0)  # Ball color - red
+    glColor3f(1.0, 0.0, 1.0)  # Ball color - red
     radius = ball_radius
     x_center = ball_x
     y_center = ball_y
