@@ -86,7 +86,6 @@ def draw_line(x1, y1, x2, y2):
     glEnd()
 
 def draw_gradient_rectangle(x, y, width, height, color_start, color_end):
-    # Draw rectangle using horizontal lines with gradient effect
     r1, g1, b1 = color_start
     r2, g2, b2 = color_end
     for i in range(height):

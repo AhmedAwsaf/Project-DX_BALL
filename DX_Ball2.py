@@ -6,6 +6,10 @@ import random
 W_width = 800
 W_height = 600
 
+ball_x, ball_y = 400, 300
+ball_dx, ball_dy = 6, 6 
+ball_radius = 10
+
 paddleobj = 0
 paddle_x = 350
 paddle_y = 30
@@ -21,24 +25,22 @@ brick_width = 60
 brick_height = 20
 brick_types = [1, 2, 3]  # 0: Iron, 1: Regular, 2: Wooden
 brick_colors = {
-    1: [1,0,0],
-    2: [1,0,1],
-    3: [0.5,0.5,0.5],
-    4: [1,1,1]
+    1: [(0.6, 0.3, 0.1), (0.4, 0.2, 0.1)],
+    2: [(0.0, 0.0, 1.0), (0.0, 0.0, 0.7)], #DamageBrick
+    3: [(0.5, 0.5, 0.5), (0.3, 0.3, 0.3)], #Iron
+    4: [[0.3, 0.7, 0.9], [1, 0.7, 0.9]], #paddle
+    5: [(0.5, 0.5, 1.0), (0.3, 0.3, 0.7)] #DamageBrick2
 }
 
 paused = False  # Game state for pause/play
 
 level0 = [
-    [0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,1,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,2,0,0,0,0,1,0,0,0],
-    [0,3,0,0,0,0,0,1,0,0,0],
-    [0,0,0,0,0,0,0,1,0,0,0],
-    [0,0,0,0,0,0,0,1,0,0,1],
+    [0,0,0,0,1,0,1,0,0,0,0],
+    [0,0,0,1,0,1,0,1,0,0,0],
+    [0,0,1,0,1,0,1,0,1,0,0],
+    [0,1,0,1,0,1,0,1,0,1,0],
+    [1,0,2,0,1,0,1,0,1,0,1]
 ]
 
 newDig = [W_width-20, W_height-20]
@@ -148,9 +150,40 @@ def draw_line(x1, y1, x2, y2):
             err += dx
             y1 += sy
 
-def draw_rectangle(x, y, width, height):
+def draw_rectangle(x, y, width, height, color_start, color_end):
+    r1, g1, b1 = color_start
+    r2, g2, b2 = color_end
     for i in range(height):
-        draw_line(x, y-i, x + width, y-i)
+        t = i / height
+        r = r1 * (1 - t) + r2 * t
+        g = g1 * (1 - t) + g2 * t
+        b = b1 * (1 - t) + b2 * t
+        glColor3f(r, g, b)
+        draw_line(x, y - i, x + width, y - i)
+
+def draw_ball():
+    global ball_y,ball_x,ball_radius
+    glColor3f(1.0, 0.4, 0.0) 
+    radius = ball_radius
+    x_center = ball_x
+    y_center = ball_y
+
+    x = radius
+    y = 0
+    p = 1 - radius
+
+    while x >= y:
+        draw_line(x_center - x, y_center + y, x_center + x, y_center + y) 
+        draw_line(x_center - y, y_center + x, x_center + y, y_center + x) 
+        draw_line(x_center - x, y_center - y, x_center + x, y_center - y) 
+        draw_line(x_center - y, y_center - x, x_center + y, y_center - x) 
+
+        y += 1
+        if p < 0:
+            p += 2 * y + 1
+        else:
+            x -= 1
+            p += 2 * (y - x) + 1
 
 class Brick:
     def __init__(self,x,y,li,w,h):
@@ -193,15 +226,15 @@ def draw_bricks():
     global bricks,brick_colors
     
     for brick in bricks:
-        r,g,b = brick_colors[brick.ty]
-        glColor3f(r,g,b)
-        draw_rectangle(brick.x,brick.y,brick.w,brick.h)
+        s,c = brick_colors[brick.ty]
+        if brick.ty == 1 and brick.li == 1:
+            s,c = brick_colors[brick.ty+2]
+        draw_rectangle(brick.x,brick.y,brick.w,brick.h,s,c)
 
 def draw_paddle():
     global paddleobj,brick_colors
-    r,g,b =brick_colors[paddleobj.ty]
-    glColor3f(r,g,b)
-    draw_rectangle(paddleobj.x,paddleobj.y,paddleobj.w,paddleobj.h)
+    s,c = brick_colors[paddleobj.ty]
+    draw_rectangle(paddleobj.x,paddleobj.y,paddleobj.w,paddleobj.h,s,c)
 
 def draw_score():
     global numbers
@@ -255,11 +288,20 @@ def check_time():
 
 
 
+def update_ball():
+    global ball_x,ball_y,ball_dx,ball_dy,ball_radius
+    ball_x += ball_dx
+    ball_y += ball_dy
+    
+    # paddle
+    
 
 def mouse_motion(x, y):
     global paddleobj
     paddleobj.x = x - paddle_width // 2
     paddleobj.x = max(0, min(W_width - paddle_width, paddleobj.x ))
+    
+    
 
 def animate():
     global timecounter,time
@@ -279,6 +321,7 @@ def display():
     draw_paddle()
     draw_score()
     draw_time()
+    draw_ball()
 
 def intializeLevel():
     global level0,brick_height,brick_width,bricks,W_height,W_width,paddleobj,paddle_height,paddle_width,paddle_x,paddle_y
@@ -288,7 +331,7 @@ def intializeLevel():
             if level0[y][x] == 0:
                 continue
             xp = leftp + x*(brick_width+5)
-            yp = W_height - 20 - y*(brick_height+5)
+            yp = W_height - 100 - y*(brick_height+5)
             bricks.append(Brick(xp,yp,level0[y][x],brick_width,brick_height))
     
     paddleobj = Brick(paddle_x,paddle_y,4,paddle_width,paddle_height)
@@ -326,6 +369,6 @@ intializeLevel()
 glutDisplayFunc(showScreen)
 # glutKeyboardFunc(keyboard)
 glutPassiveMotionFunc(mouse_motion)
-glutTimerFunc(8, timer, 0) 
+glutTimerFunc(16, timer, 0) 
 
 glutMainLoop()
