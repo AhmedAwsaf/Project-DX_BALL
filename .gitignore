@@ -1,0 +1,5 @@
+/OpenGL/
+/OpenGL
+/OpenGL/*
+/OpenGL/** 
+*.pyc
