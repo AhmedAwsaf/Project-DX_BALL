@@ -35,28 +35,6 @@ for row in range(triangle_base):
         elif brick_type == 2:  # Wooden bricks need 1 hit
             brick_health[(brick_x, brick_y)] = 1
 
-# def midpoint_circle(x_center, y_center, radius):
-#     x = radius
-#     y = 0
-#     p = 1 - radius
-
-#     points = []
-
-#     while x >= y:
-#         points.extend([(x_center + x, y_center + y), (x_center + y, y_center + x),
-#                        (x_center - y, y_center + x), (x_center - x, y_center + y),
-#                        (x_center - x, y_center - y), (x_center - y, y_center - x),
-#                        (x_center + y, y_center - x), (x_center + x, y_center - y)])
-
-#         y += 1
-#         if p < 0:
-#             p += 2 * y + 1
-#         else:
-#             x -= 1
-#             p += 2 * (y - x) + 1
-
-#     return points
-
 def draw_circle(x, y, radius):
     points = midpoint_circle(x, y, radius)
     glBegin(GL_POINTS)
@@ -109,11 +87,6 @@ def draw_bricks():
         elif brick_type == 2:  # Wooden brick
             draw_gradient_rectangle(brick_x, brick_y, brick_width, brick_height, (0.6, 0.3, 0.1), (0.4, 0.2, 0.1))
 
-def draw_text(x, y, text):
-    glRasterPos2f(x, y)
-    for char in text:
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(char))
-
 def draw_paddle():
     global paddle_x
     glColor3f(0.3, 0.7, 0.9)  # Paddle color - light blue
@@ -144,11 +117,55 @@ def draw_ball():
             x -= 1
             p += 2 * (y - x) + 1
 
-
 def draw_rectangle(x, y, width, height):
     # Draw rectangle using lines
     for i in range(height):
-        draw_line(x, y-i, x + width, y-i)
+        draw_line(x, y - i, x + width, y - i)
+
+def draw_pause_button():
+    """Draw a pause button in the bottom left corner using midpoint line drawing."""
+    glColor3f(0.5, 0.5, 0.5)  # Gray color
+    x_start = 10
+    y_start = 10
+    button_width = 30
+    button_height = 30
+
+    # Draw rectangle outline for pause button
+    draw_line(x_start, y_start, x_start + button_width, y_start)
+    draw_line(x_start, y_start, x_start, y_start + button_height)
+    draw_line(x_start + button_width, y_start, x_start + button_width, y_start + button_height)
+    draw_line(x_start, y_start + button_height, x_start + button_width, y_start + button_height)
+
+    # Draw pause symbol (two vertical lines)
+    line_spacing = 10
+    draw_line(x_start + line_spacing, y_start + 5, x_start + line_spacing, y_start + button_height - 5)
+    draw_line(x_start + button_width - line_spacing, y_start + 5, x_start + button_width - line_spacing, y_start + button_height - 5)
+
+def draw_pause_menu():
+    """Draw pause menu with Restart, Resume, and Exit buttons."""
+    glColor3f(1.0, 1.0, 1.0)  # White color
+
+    # Restart button
+    restart_x, restart_y = 350, 400
+    button_width, button_height = 100, 40
+    draw_line(restart_x, restart_y, restart_x + button_width, restart_y)
+    draw_line(restart_x, restart_y, restart_x, restart_y - button_height)
+    draw_line(restart_x + button_width, restart_y, restart_x + button_width, restart_y - button_height)
+    draw_line(restart_x, restart_y - button_height, restart_x + button_width, restart_y - button_height)
+
+    # Resume button
+    resume_x, resume_y = 350, 340
+    draw_line(resume_x, resume_y, resume_x + button_width, resume_y)
+    draw_line(resume_x, resume_y, resume_x, resume_y - button_height)
+    draw_line(resume_x + button_width, resume_y, resume_x + button_width, resume_y - button_height)
+    draw_line(resume_x, resume_y - button_height, resume_x + button_width, resume_y - button_height)
+
+    # Exit button
+    exit_x, exit_y = 350, 280
+    draw_line(exit_x, exit_y, exit_x + button_width, exit_y)
+    draw_line(exit_x, exit_y, exit_x, exit_y - button_height)
+    draw_line(exit_x + button_width, exit_y, exit_x + button_width, exit_y - button_height)
+    draw_line(exit_x, exit_y - button_height, exit_x + button_width, exit_y - button_height)
 
 def mouse_motion(x, y):
     global paddle_x
@@ -157,6 +174,31 @@ def mouse_motion(x, y):
 
     # Keep paddle within window bounds
     paddle_x = max(0, min(W_width - paddle_width, paddle_x))
+
+def mouse_click(button, state, x, y):
+    global paused
+    if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN:
+        if paused:
+            # Check if Restart button clicked
+            if 350 <= x <= 450 and 200 <= (W_height - y) <= 240:
+                print("Restart")
+                glutLeaveMainLoop()
+                return
+
+            # Check if Resume button clicked
+            if 350 <= x <= 450 and 260 <= (W_height - y) <= 300:
+                paused = False
+                return
+
+            # Check if Exit button clicked
+            if 350 <= x <= 450 and 320 <= (W_height - y) <= 360:
+                print("Exit")
+                glutLeaveMainLoop()
+                return
+
+        # Check if the click is inside the pause button
+        if 10 <= x <= 40 and W_height - y <= 40:
+            paused = not paused
 
 def update_ball():
     global ball_x, ball_y, ball_dx, ball_dy, bricks, brick_health, paused
@@ -200,24 +242,15 @@ def update_ball():
         print("Game Over")
         glutLeaveMainLoop()
 
-def keyboard(key, x, y):
-    global paused
-    if key == b'p':  # Toggle pause
-        paused = not paused
-
 def display():
     glClearColor(0.1, 0.1, 0.1, 1.0)  # Background color - dark gray
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     draw_paddle()
     draw_ball()
     draw_bricks()
-
-    # Draw pause/play text
-    glColor3f(1.0, 1.0, 1.0)
+    draw_pause_button()
     if paused:
-        draw_text(W_width // 2 - 50, W_height // 2, "PAUSED")
-    else:
-        draw_text(10, 10, "Press 'P' to Pause")
+        draw_pause_menu()
 
 def iterate():
     global W_height, W_width
@@ -246,7 +279,7 @@ glutInitWindowSize(W_width, W_height)  # Window size
 glutInitWindowPosition(0, 0)
 wind = glutCreateWindow(b"DX_Ball CSE423-Project")  # Window name
 glutDisplayFunc(showScreen)
-glutKeyboardFunc(keyboard)  # Register keyboard function
+glutMouseFunc(mouse_click)  # Register mouse click function
 glutPassiveMotionFunc(mouse_motion)  # Register mouse motion function
 glutTimerFunc(16, timer, 0)  # Timer for ball updates
 
