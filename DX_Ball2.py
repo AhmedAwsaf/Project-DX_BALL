@@ -40,6 +40,9 @@ brick_colors = {
 }
 
 paused = False 
+scene = 0
+# 0: Menu, 1: Game, 2: Game Over
+
 
 level0 = [
     [0,0,0,0,0,1,0,0,0,0,0],
@@ -55,8 +58,8 @@ levelblocksbroken = 0
 newDig = [W_width-20, W_height-20]
 newTimDig = [W_width-20, W_height-50]
 changeDigx = -20
-score = 0
-time = 0
+score = 11
+time = 10
 timecounter = 0
 numbers = []
 timenumbers = []
@@ -132,7 +135,143 @@ scoreboard={
         0,1,
          1
     ],
+    10:[
+         1,
+        1,0,
+         0,
+        1,1,
+         1
+    ], #G
+    11:[
+         1,
+        1,1,
+         1,
+        1,1,
+         0
+    ], #A
+    12:[
+         0,
+        1,1,
+         0,
+        1,1,
+         0
+    ],#M
+    13:[
+         1,
+        1,0,
+         1,
+        1,0,
+         1
+    ],#E
+    14:[
+         1,
+        1,0,
+         1,
+        1,1,
+         0
+    ],#R
+    15:[
+         1,
+        1,0,
+         0,
+        1,0,
+         1
+    ],#c
+    16:[
+         1,
+        1,1,
+         1,
+        0,1,
+         1
+    ],
+    17:[
+         1,
+        1,1,
+         1,
+        0,1,
+         1
+    ],
 }
+
+def initializeAll():
+    global ball_x, ball_y, ball_dx, ball_dy, ball_radius
+    global paddle_x, paddle_y, paddle_width, paddle_height
+    global falling_box, falling_box_width, falling_box_height, falling_box_speed
+    global bricks, rembricks, brick_width, brick_height, brick_types, paddleobj
+    global paused, scene
+    global levelblocks, levelblocksbroken
+    global newDig, newTimDig, changeDigx
+    global score, time, timecounter, numbers, timenumbers
+    
+    ball_x, ball_y = 400, 300
+    ball_dx, ball_dy = 6, 6 
+    ball_radius = 7
+
+    paddleobj = 0
+    paddle_x = 350
+    paddle_y = 30
+    paddle_width = 100
+    paddle_height = 10
+
+    ball_x, ball_y = 400, 300
+    ball_dx, ball_dy = -6, -6 
+    ball_radius = 10
+
+    falling_box = None
+    falling_box_width = 20
+    falling_box_height = 20
+    falling_box_speed = 4 
+
+    bricks = [] 
+    rembricks = [] 
+    brick_width = 60
+    brick_height = 20
+    brick_types = [1, 2, 3] 
+
+    paused = False 
+    # 0: Menu, 1: Game, 2: Game Over
+
+    levelblocks = 0
+    levelblocksbroken = 0
+
+    newDig = [W_width-20, W_height-20]
+    newTimDig = [W_width-20, W_height-50]
+    changeDigx = -20
+    score = 0
+    time = 0
+    timecounter = 0
+    numbers = []
+    timenumbers = []
+
+def changeLevel(n):
+    global level0
+    if n == 1:
+        level0 = [
+        [0,0,0,0,0,1,0,0,0,0,0],
+        [0,0,0,0,1,0,1,0,0,0,0],
+        [0,0,0,1,0,1,0,1,0,0,0],
+        [0,0,1,0,1,0,1,0,1,3,0],
+        [0,1,0,1,0,1,0,1,0,1,0],
+        [1,0,2,0,1,0,1,0,1,0,1]
+        ]
+    if n == 2:
+        level0 = [
+        [0, 1, 0, 3, 1, 0, 2, 0, 1, 3, 0],
+        [1, 0, 0, 0, 0, 2, 0, 1, 1, 0, 0],
+        [0, 0, 3, 0, 1, 0, 0, 1, 0, 2, 0],
+        [0, 1, 0, 1, 0, 0, 3, 0, 1, 0, 0],
+        [0, 0, 2, 1, 0, 1, 0, 0, 0, 1, 3],
+        [3, 0, 1, 0, 1, 2, 0, 0, 1, 0, 0]
+        ]
+    if n == 3:
+        level0 = [
+        [2, 0, 0, 3, 2, 3, 2, 0, 0, 3, 1],
+        [0, 1, 1, 1, 1, 2, 2, 3, 3, 0, 2],
+        [0, 0, 3, 1, 3, 3, 3, 1, 0, 2, 3],
+        [2, 3, 3, 0, 1, 2, 2, 1, 1, 3, 2],
+        [1, 2, 0, 3, 2, 2, 0, 1, 1, 2, 3],
+        [3, 1, 2, 0, 1, 2, 2, 2, 0, 1, 0]
+        ]
 
 def draw_points(x, y, w=2):
     glPointSize(w)
@@ -475,7 +614,7 @@ def draw_city_background():
 #########################################################
 
 def check_score():
-    global score, numbers, newDig, changeDigx, levelblocksbroken, levelblocks
+    global score, numbers, newDig, changeDigx, levelblocksbroken, levelblocks, paused, scene
     temp_score = score
     n = 0
 
@@ -495,6 +634,9 @@ def check_score():
     
     if levelblocksbroken>=levelblocks:
         print("END")
+        paused = True
+        scene = 2
+        
     
 
 def draw_time():
@@ -557,7 +699,7 @@ def check_collision(ball_x, ball_y, ball_r, block):
 
 
 def update_ball():
-    global ball_x,ball_y,ball_dx,ball_dy,ball_radius, W_width, W_height, paddleobj, ball_speed, bricks, rembricks, level0, brick_height , levelblocksbroken, falling_box, score
+    global ball_x,ball_y,ball_dx,ball_dy,ball_radius, W_width, W_height, paddleobj, ball_speed, bricks, rembricks, level0, brick_height , levelblocksbroken, falling_box, score, paused,scene
     ball_x += ball_dx
     ball_y += ball_dy
     
@@ -615,18 +757,54 @@ def update_ball():
             falling_box = None
             score += 18
     
+    if ball_y-ball_radius<0:
+        paused = True
+        scene = 2
+    
 
 def mouse_motion(x, y):
-    global paddleobj, paused
-    if not paused:
+    global paddleobj, paused, scene 
+    if not paused and scene == 1:
         paddleobj.x = x - paddle_width // 2
         paddleobj.x = max(0, min(W_width - paddle_width, paddleobj.x ))
 
 def keyboard(key, x, y):
-    global paused
-    if key == b'p':  # Toggle pause
-        paused = not paused
-    
+    global paused,scene
+    if scene == 1:
+        if key == b'p':  # Toggle pause
+            paused = not paused
+
+def Click(button, state, x, y):
+    global W_height,W_width,score,scene
+    xp,yp = x,W_height-y
+    x_c,y_c = W_width//2, W_height//2
+    if scene == 2:
+        if (x_c-110< xp <x_c+110) and (y_c-5<yp<y_c+40):
+            if state==GLUT_DOWN:
+                scene=0
+    if scene == 0:
+        if ( W_width - 220 < xp < W_width - 190 ):
+            if 190<yp<210:
+                if state==GLUT_DOWN:
+                    print("1")
+                    initializeAll()
+                    changeLevel(1)
+                    intializeLevel()
+                    scene = 1
+            if 140<yp<160:
+                if state==GLUT_DOWN:
+                    print("2")
+                    initializeAll()
+                    changeLevel(2)
+                    intializeLevel()
+                    scene = 1
+            if 90<yp<110:
+                if state==GLUT_DOWN:
+                    print("3")
+                    initializeAll()
+                    changeLevel(3)
+                    intializeLevel()
+                    scene = 1
     
 
 def animate():
@@ -662,6 +840,113 @@ def display():
     if falling_box != None:
         falling_box.draw()
 
+def displayKO():
+    global newDig,newTimDig
+    x_center = W_height//2 + 70
+    y_center = W_width//2 - 30
+    
+    glColor3f(1,1,1)
+    #G
+    x = Number(x_center-50,y_center, 10)
+    x.draw()
+    #A
+    x = Number(x_center-30,y_center, 11)
+    x.draw()
+    #M
+    x = Number(x_center-10,y_center, 12)
+    x.draw()
+    draw_line(x_center-15,y_center+8,x_center-5,y_center+8)
+    #E
+    x = Number(x_center+10,y_center, 13)
+    x.draw()
+    #O
+    x = Number(x_center+40,y_center, 0)
+    x.draw()
+    #V
+    draw_line(x_center+60,y_center-10,x_center+55,y_center+10)
+    draw_line(x_center+60,y_center-10,x_center+65,y_center+10)
+    #E
+    x = Number(x_center+80,y_center, 13)
+    x.draw()
+    #R
+    x = Number(x_center+100,y_center, 14)
+    x.draw()
+    draw_line(x_center+100,y_center,x_center+108,y_center+10)
+    
+    y_center -= 50
+    x_center += 65
+    #R
+    x = Number(x_center-100,y_center, 14)
+    x.draw()
+    draw_line(x_center-100,y_center,x_center-92,y_center+10)
+    #E
+    x = Number(x_center-80,y_center, 13)
+    x.draw()
+    #S
+    x = Number(x_center-60,y_center, 5)
+    x.draw()
+    #T
+    draw_line(x_center-45,y_center+10,x_center-35,y_center+10)
+    draw_line(x_center-40,y_center+10,x_center-40,y_center-10)
+    #A
+    x = Number(x_center-20,y_center, 11)
+    x.draw()
+    #R
+    x = Number(x_center,y_center, 14)
+    x.draw()
+    draw_line(x_center,y_center,x_center+8,y_center+10)
+    #T
+    draw_line(x_center+15,y_center+10,x_center+25,y_center+10)
+    draw_line(x_center+20,y_center+10,x_center+20,y_center-10)
+    
+    y_center -= 60
+    x_center += 10
+    
+    # #S
+    # x = Number(x_center-100,y_center, 5)
+    # x.draw()
+    # #C
+    # x = Number(x_center-80,y_center, 15)
+    # x.draw()
+    # #O
+    # x = Number(x_center-60,y_center, 0)
+    # x.draw()
+    # #R
+    # x = Number(x_center-40,y_center, 14)
+    # x.draw()
+    # draw_line(x_center-40,y_center,x_center-32,y_center+10)
+    # #E
+    # x = Number(x_center-20,y_center, 13)
+    # x.draw()
+    
+    newDig = [x_center,y_center-50]
+    check_score()
+    draw_score()
+    newTimDig = [x_center,y_center-80]
+    check_time()
+    draw_time()
+    
+
+def displaymenu():
+    x_center = W_height//2+50
+    y_center = W_width//2
+    
+    glColor3f(1,1,1)
+    draw_circle(x_center-100, y_center,50,(1,1,1))
+    draw_line(x_center+30,y_center+35,x_center-20,y_center-35,20)
+    draw_line(x_center+30,y_center-35,x_center-20,y_center+35,20)
+    
+    glColor3f(0,0,0)
+    draw_line(x_center-140,y_center+50,x_center-140,y_center-50,50)
+    
+    glColor3f(1,1,1)
+    one = Number(W_width-200,200,1,10)
+    one.draw()
+    two = Number(W_width-200,150,2,10)
+    two.draw()
+    three = Number(W_width-200,100,3,10)
+    three.draw()
+
 def intializeLevel():
     global level0,levelblocks,brick_height,brick_width,bricks,W_height,W_width,paddleobj,paddle_height,paddle_width,paddle_x,paddle_y
     leftp = (W_width-len(level0[0])*(brick_width+5))//2
@@ -692,11 +977,16 @@ def showScreen():
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
     iterate()
-    display()
+    if scene == 1:
+        display()
+    elif scene == 0:
+        displaymenu()
+    elif scene == 2:
+        displayKO()
     glutSwapBuffers()
 
 def timer(value):
-    if not paused:
+    if not paused and scene==1:
         animate()
     glutPostRedisplay()
     glutTimerFunc(16, timer, 0) 
@@ -712,6 +1002,7 @@ intializeLevel()
 glutDisplayFunc(showScreen)
 glutKeyboardFunc(keyboard)
 glutPassiveMotionFunc(mouse_motion)
+glutMouseFunc(Click)
 glutTimerFunc(16, timer, 0) 
 
 glutMainLoop()
