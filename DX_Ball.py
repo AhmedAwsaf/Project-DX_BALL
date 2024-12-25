@@ -123,7 +123,8 @@ def draw_rectangle(x, y, width, height):
         draw_line(x, y - i, x + width, y - i)
 
 def draw_pause_button():
-    """Draw a pause button in the bottom left corner using midpoint line drawing."""
+    """Draw Pause, Resume, and Exit buttons in the bottom left corner."""
+    # Pause button
     glColor3f(0.5, 0.5, 0.5)  # Gray color
     x_start = 10
     y_start = 10
@@ -141,34 +142,46 @@ def draw_pause_button():
     draw_line(x_start + line_spacing, y_start + 5, x_start + line_spacing, y_start + button_height - 5)
     draw_line(x_start + button_width - line_spacing, y_start + 5, x_start + button_width - line_spacing, y_start + button_height - 5)
 
-def draw_pause_menu():
-    """Draw pause menu with Restart, Resume, and Exit buttons."""
-    glColor3f(1.0, 1.0, 1.0)  # White color
+    # Resume button (next to pause button)
+    resume_x_start = x_start + button_width + 10  # Add spacing between buttons
+    glColor3f(0.3, 0.8, 0.3)  # Green color
 
-    # Restart button
-    restart_x, restart_y = 350, 400
-    button_width, button_height = 100, 40
-    draw_line(restart_x, restart_y, restart_x + button_width, restart_y)
-    draw_line(restart_x, restart_y, restart_x, restart_y - button_height)
-    draw_line(restart_x + button_width, restart_y, restart_x + button_width, restart_y - button_height)
-    draw_line(restart_x, restart_y - button_height, restart_x + button_width, restart_y - button_height)
+    # Draw rectangle outline for resume button
+    draw_line(resume_x_start, y_start, resume_x_start + button_width, y_start)
+    draw_line(resume_x_start, y_start, resume_x_start, y_start + button_height)
+    draw_line(resume_x_start + button_width, y_start, resume_x_start + button_width, y_start + button_height)
+    draw_line(resume_x_start, y_start + button_height, resume_x_start + button_width, y_start + button_height)
 
-    # Resume button
-    resume_x, resume_y = 350, 340
-    draw_line(resume_x, resume_y, resume_x + button_width, resume_y)
-    draw_line(resume_x, resume_y, resume_x, resume_y - button_height)
-    draw_line(resume_x + button_width, resume_y, resume_x + button_width, resume_y - button_height)
-    draw_line(resume_x, resume_y - button_height, resume_x + button_width, resume_y - button_height)
+    # Draw resume symbol (triangle)
+    top_x = resume_x_start + button_width - 10
+    top_y = y_start + button_height // 2
+    bottom_left_x = resume_x_start + 10
+    bottom_left_y = y_start + 5
+    top_left_x = resume_x_start + 10
+    top_left_y = y_start + button_height - 5
+    draw_line(bottom_left_x, bottom_left_y, top_left_x, top_left_y)  # Left edge
+    draw_line(top_left_x, top_left_y, top_x, top_y)  # Top edge
+    draw_line(top_x, top_y, bottom_left_x, bottom_left_y)  # Right edge
 
-    # Exit button
-    exit_x, exit_y = 350, 280
-    draw_line(exit_x, exit_y, exit_x + button_width, exit_y)
-    draw_line(exit_x, exit_y, exit_x, exit_y - button_height)
-    draw_line(exit_x + button_width, exit_y, exit_x + button_width, exit_y - button_height)
-    draw_line(exit_x, exit_y - button_height, exit_x + button_width, exit_y - button_height)
+    # Exit button (next to resume button)
+    exit_x_start = resume_x_start + button_width + 10  # Add spacing
+    glColor3f(0.8, 0.3, 0.3)  # Red color
+
+    # Draw rectangle outline for exit button
+    draw_line(exit_x_start, y_start, exit_x_start + button_width, y_start)
+    draw_line(exit_x_start, y_start, exit_x_start, y_start + button_height)
+    draw_line(exit_x_start + button_width, y_start, exit_x_start + button_width, y_start + button_height)
+    draw_line(exit_x_start, y_start + button_height, exit_x_start + button_width, y_start + button_height)
+
+    # Draw exit symbol (X shape)
+    draw_line(exit_x_start + 5, y_start + 5, exit_x_start + button_width - 5, y_start + button_height - 5)  # Diagonal line 1
+    draw_line(exit_x_start + button_width - 5, y_start + 5, exit_x_start + 5, y_start + button_height - 5)  # Diagonal line 2
+
 
 def mouse_motion(x, y):
-    global paddle_x
+    global paddle_x, paused
+    if paused:
+        return  # Do not update paddle position if the game is paused
     # Update paddle_x based on mouse x position
     paddle_x = x - paddle_width // 2
 
@@ -178,27 +191,23 @@ def mouse_motion(x, y):
 def mouse_click(button, state, x, y):
     global paused
     if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN:
-        if paused:
-            # Check if Restart button clicked
-            if 350 <= x <= 450 and 200 <= (W_height - y) <= 240:
-                print("Restart")
-                glutLeaveMainLoop()
-                return
+        # Map the y-coordinate to OpenGL's coordinate system
+        y = W_height - y
 
-            # Check if Resume button clicked
-            if 350 <= x <= 450 and 260 <= (W_height - y) <= 300:
-                paused = False
-                return
+        # Check Pause button
+        if 10 <= x <= 40 and 10 <= y <= 40:
+            paused = True
 
-            # Check if Exit button clicked
-            if 350 <= x <= 450 and 320 <= (W_height - y) <= 360:
-                print("Exit")
-                glutLeaveMainLoop()
-                return
+        # Check Resume button
+        elif 50 <= x <= 80 and 10 <= y <= 40:
+            paused = False
 
-        # Check if the click is inside the pause button
-        if 10 <= x <= 40 and W_height - y <= 40:
-            paused = not paused
+        # Check Exit button
+        elif 90 <= x <= 120 and 10 <= y <= 40:
+            print("Exiting game...")
+            glutLeaveMainLoop()
+
+
 
 def update_ball():
     global ball_x, ball_y, ball_dx, ball_dy, bricks, brick_health, paused
@@ -249,8 +258,7 @@ def display():
     draw_ball()
     draw_bricks()
     draw_pause_button()
-    if paused:
-        draw_pause_menu()
+    
 
 def iterate():
     global W_height, W_width
