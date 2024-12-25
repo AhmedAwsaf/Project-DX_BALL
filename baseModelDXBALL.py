@@ -159,48 +159,51 @@ falling_box_width = 20
 falling_box_height = 20
 falling_box_speed = 4  # Speed at which the box falls
 
-class FallingBox:
-    def __init__(self, x, y, width, height):
+class Coin:
+    def __init__(self, x, y, radius):
         self.x = x
         self.y = y
-        self.width = width
-        self.height = height
+        self.radius = radius
 
     def move(self):
-        self.y -= falling_box_speed  # Box falls downwards
+        self.y -= falling_box_speed  # Coin falls downwards
 
     def reset_position(self):
-        self.x = random.randint(0, W_width - self.width)  # Random x position
+        self.x = random.randint(self.radius, W_width - self.radius)  # Random x position
         self.y = W_height  # Start at the top of the screen
 
     def draw(self):
-        glColor3f(0.5, 0.5, 1)  # Blue color for the falling box
-        draw_rectangle(self.x, self.y, self.width, self.height)
+        glColor3f(1, 0.84, 0)  # Gold color for the coin
+        glBegin(GL_POINTS)
+        for angle in range(0, 360, 10):  # Adjust the angle step for point density
+            x = self.x + self.radius * cos(radians(angle))
+            y = self.y + self.radius * sin(radians(angle))
+            glVertex2f(x, y)
+        glEnd()
 
 # Modify the ball_move function to include logic for falling boxes
-def falling_box_move():
+def falling_coin_move():
     global falling_box, score
 
-    # Move the box down
+    # Move the coin down
     falling_box.move()
 
-    # Check if the box collides with the paddle
-    if (falling_box.y <= paddleobj.y + paddle_height and
-        falling_box.x + falling_box.width >= paddleobj.x and
-        falling_box.x <= paddleobj.x + paddle_width):
-        # Box hit the paddle
+    # Check if the coin collides with the paddle
+    if (falling_box.y - falling_box.radius <= paddleobj.y + paddle_height and
+        falling_box.x + falling_box.radius >= paddleobj.x and
+        falling_box.x - falling_box.radius <= paddleobj.x + paddle_width):
+        # Coin hit the paddle
         score += 10  # Increase the score
-        falling_box.reset_position()  # Reset the box to the top
+        falling_box.reset_position()  # Reset the coin to the top
 
-    # If the box falls off the screen, reset it
-    if falling_box.y <= 0:
+    # If the coin falls off the screen, reset it
+    if falling_box.y + falling_box.radius <= 0:
         falling_box.reset_position()
 
-# Initialize the falling box
-def initialize_falling_box():
+def initialize_falling_coin():
     global falling_box
-    falling_box = FallingBox(random.randint(0, W_width - falling_box_width), W_height, falling_box_width, falling_box_height)
-
+    coin_radius = 10
+    falling_box = Coin(random.randint(coin_radius, W_width - coin_radius), W_height, coin_radius)
 
 class Brick:
     def __init__(self,x,y,li,w,h):
@@ -372,10 +375,9 @@ def animate():
         timecounter = 0
 
     ball_move()  # Move the ball and check collisions
-    falling_box_move()  # Move the falling box and check for collisions
+    falling_coin_move()  # Move the coin and check for collisions
     check_time()
-    check_score()
-    
+    check_score()  
 
 def display():
     glClearColor(0.1, 0.1, 0.1, 1.0)
@@ -386,7 +388,6 @@ def display():
     draw_score()
     draw_time()
     falling_box.draw()  # Draw the falling box
-
 def intializeLevel():
     global level0, brick_height, brick_width, bricks, W_height, W_width, paddleobj, paddle_height, paddle_width, paddle_x, paddle_y
     leftp = (W_width - len(level0[0]) * (brick_width + 5)) // 2
@@ -397,10 +398,9 @@ def intializeLevel():
             xp = leftp + x * (brick_width + 5)
             yp = W_height - 20 - y * (brick_height + 5)
             bricks.append(Brick(xp, yp, level0[y][x], brick_width, brick_height))
-    
-    paddleobj = Brick(paddle_x, paddle_y, 4, paddle_width, paddle_height)
-    initialize_falling_box()  # Initialize the falling box
 
+    paddleobj = Brick(paddle_x, paddle_y, 4, paddle_width, paddle_height)
+    initialize_falling_coin()  # Initialize the coin
 
 def iterate():
     global W_height, W_width
