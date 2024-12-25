@@ -21,6 +21,10 @@ ball_speed = 6
 ball_dx, ball_dy = -6, -6 
 ball_radius = 10
 
+falling_box = None
+falling_box_width = 20
+falling_box_height = 20
+falling_box_speed = 4 
 
 bricks = [] 
 rembricks = [] 
@@ -221,6 +225,7 @@ class Brick:
         self.li = li
         self.w = w
         self.h = h
+        self.e = True
 
 class Number:
     def __init__(self,x,y,num, w=10):
@@ -249,11 +254,12 @@ class Number:
                 x1,y1,x2,y2 = Scoreline[i]
                 draw_line(x1,y1,x2,y2)
 
-
 def draw_bricks():
     global bricks,brick_colors
     
     for brick in bricks:
+        if not brick.e:
+            continue
         s = brick_colors[brick.ty]
         if brick.ty == 2 and brick.li == 1:
             s = brick_colors[5]
@@ -269,6 +275,26 @@ def draw_score():
     glColor3f(0.2,1,0.4)
     for number in numbers:
         number.draw()
+
+
+
+class Coin:
+    def __init__(self, x, y, radius):
+        self.x = x
+        self.y = y
+        self.radius = radius
+
+    def move(self):
+        self.y -= falling_box_speed 
+
+    def draw(self):
+        glColor3f(1, 0.84, 0) 
+        draw_circle(self.x,self.y,self.radius,(1,0.84,0))
+        
+def create_coin(x,y):
+    global falling_box
+    if falling_box == None:
+        falling_box = Coin(x,y,7)
 
 ############### BACKGROUND PART ############################
 def draw_hill():
@@ -388,8 +414,8 @@ def check_collision(ball_x, ball_y, ball_r, block):
     # Ball boundaries
     ball_left = ball_x - ball_r
     ball_right = ball_x + ball_r
-    ball_top = ball_y - ball_r  # Top is smaller y
-    ball_bottom = ball_y + ball_r  # Bottom is larger y
+    ball_top = ball_y - ball_r 
+    ball_bottom = ball_y + ball_r 
 
     # Block boundaries
     block_left = block.x
@@ -399,12 +425,12 @@ def check_collision(ball_x, ball_y, ball_r, block):
 
     # Check for collision
     if ball_right > block_left and ball_left < block_right and ball_bottom > block_top and ball_top < block_bottom:
-        # Calculate overlap distances
+
         overlap_x = min(ball_right - block_left, block_right - ball_left)
         overlap_y = min(ball_bottom - block_top, block_bottom - ball_top)
 
         # Determine collision side
-        if overlap_x < overlap_y:  # Smaller overlap determines side
+        if overlap_x < overlap_y:  
             if ball_x < block.x:
                 return "Left"
             else:
@@ -419,7 +445,7 @@ def check_collision(ball_x, ball_y, ball_r, block):
 
 
 def update_ball():
-    global ball_x,ball_y,ball_dx,ball_dy,ball_radius, W_width, W_height, paddleobj, ball_speed, bricks, rembricks, level0, brick_height , levelblocksbroken
+    global ball_x,ball_y,ball_dx,ball_dy,ball_radius, W_width, W_height, paddleobj, ball_speed, bricks, rembricks, level0, brick_height , levelblocksbroken, falling_box, score
     ball_x += ball_dx
     ball_y += ball_dy
     
@@ -444,6 +470,8 @@ def update_ball():
     
     if W_height - b_start < ball_y + ball_radius:
         for bricki in range(len(bricks)):
+            if not bricks[bricki].e:
+                continue
             side = check_collision(ball_x,ball_y, ball_radius,bricks[bricki])
             if side == None:
                 continue
@@ -454,19 +482,26 @@ def update_ball():
                 ball_dy = -ball_dy
                 rembricks.append(bricki)
                 
-    rembricks.reverse()
     while rembricks != []:
         i = rembricks[len(rembricks)-1]
         brick = bricks[i]
         if brick.ty == 2 and brick.li > 1:
             print("damage")
             brick.li -=1
+            score += 5
         elif brick.ty != 3:
-            bricks.pop(i)
+            create_coin(bricks[i].x,bricks[i].y)
+            # bricks.pop(i)
+            brick.e = False
             levelblocksbroken += 1
+            score += 10
             
-        rembricks.pop()      
-        
+        rembricks.pop() 
+    
+    if falling_box != None and paddleobj.y>=falling_box.y>= paddleobj.y - paddleobj.h:
+        if paddleobj.x < falling_box.x < paddleobj.x + paddleobj.w:
+            falling_box = None
+            score += 18
     
 
 def mouse_motion(x, y):
@@ -483,17 +518,23 @@ def keyboard(key, x, y):
     
 
 def animate():
-    global timecounter,time
+    global timecounter,time,falling_box
     timecounter += 1
     if timecounter >= 10:
         time += 1
         timecounter = 0
+        
+    if falling_box != None:
+        falling_box.move()
+        if falling_box.y<0:
+            falling_box = None
 
     check_time()
     check_score()
     update_ball()
 
 def display():
+    global falling_box
     glClearColor(0.1, 0.1, 0.1, 1.0)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     draw_hill()
@@ -503,6 +544,8 @@ def display():
     draw_score()
     draw_time()
     draw_ball()
+    if falling_box != None:
+        falling_box.draw()
 
 def intializeLevel():
     global level0,levelblocks,brick_height,brick_width,bricks,W_height,W_width,paddleobj,paddle_height,paddle_width,paddle_x,paddle_y
