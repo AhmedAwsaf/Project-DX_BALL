@@ -888,6 +888,14 @@ def Click(button, state, x, y):
         if (left_button_left_x <= xp <= left_button_right_x and 
             left_button_bottom_y <= yp <= left_button_top_y):
             scene=0
+            # Right Button Logic (toggle pause on right button click)
+        right_button_left_x = right_button_x - 30  # Left X of right button
+        right_button_right_x = right_button_x + 20  # Right X of right button
+
+        if (right_button_left_x <= xp <= right_button_right_x and 
+            button_top_y - 15 <= yp <= button_top_y + 15):  # Check if click is within right button's area
+            if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN:  # Check for left mouse button click
+                glutLeaveMainLoop()
     
 
 def animate():
