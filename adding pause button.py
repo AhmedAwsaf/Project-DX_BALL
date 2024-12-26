@@ -6,9 +6,9 @@ import random
 W_width = 800
 W_height = 600
 
-ball_x, ball_y = 400, 300
-ball_dx, ball_dy = 6, 6 
-ball_radius = 7
+# ball_x, ball_y = 400, 300
+# ball_dx, ball_dy = 6, 6 
+# ball_radius = 7
 
 paddleobj = 0
 paddle_x = 350
@@ -197,9 +197,9 @@ button_top_y = 570  # Y-position for the top of buttons
 button_bottom_y = 540  # Y-position for the bottom of buttons
 left_button_x = 20  # X-position for the left button
 right_button_x = 210  # X-position for the right button
-middle_button_x = 110  # X-position for the middle button
-middle_button_top_y = 570  # Y-position for the middle button's top
-middle_button_bottom_y = 540  # Y-position for the middle button's bottom
+middle_button_x = 120  # X-position for the middle button
+middle_button_top_y = 580  # Y-position for the middle button's top
+middle_button_bottom_y = 550  # Y-position for the middle button's bottom
 
 def draw_buttons():
     global paused
@@ -562,110 +562,83 @@ window_width = W_width
 window_height = W_height
 
 def draw_point(x, y):
-    """Helper function to draw a point at (x, y)"""
     glVertex2f(x, y)
 
 def draw_building(x, y, width, height, lit_ratio=0.1):
-    """
-    Draws a single building using GL_POINTS. Lit windows are randomized.
-    The window layout is symmetrical in the building area.
-    """
-    glColor3f(0.3, 0.3, 0.3)  # Dark gray for the building outline
-    # Draw each point as part of the building
+    glColor3f(0.3, 0.3, 0.3) 
+
     for i in range(width):
         for j in range(height):
-            draw_point(x + i, y + j)  # Use helper function
+            draw_points(x + i, y + j)  
 
-    # Draw lit windows as points (windows in a grid)
-    window_size = 3  # Smaller window size
-    glColor3f(1.0, 1.0, 1.0)  # White for lit windows
-    window_columns = width // window_size  # Number of columns
-    window_rows = height // window_size  # Number of rows
+    window_size = 3  
+    glColor3f(1.0, 1.0, 1.0)  
+    window_columns = width // window_size  
+    window_rows = height // window_size 
 
     for row in range(window_rows):
         for col in range(window_columns):
-            if random.random() < lit_ratio:  # Lit window
+            if random.random() < lit_ratio: 
                 wx = x + col * window_size
                 wy = y + row * window_size
                 for i in range(window_size):
                     for j in range(window_size):
-                        draw_point(wx + i, wy + j)  # Representing the window with points
+                        draw_points(wx + i, wy + j)  
 
 def draw_clouds():
-    """
-    Draws large clouds using GL_POINTS (white and black ash clouds).
-    """
-    cloud_count = 100  # Reduced count since clouds will be larger
+    cloud_count = 100  
     for _ in range(cloud_count):
-        # Randomly generate cloud position
         x = random.randint(-window_width, window_width)
         y = random.randint(int(window_height / 2), window_height)
 
-        # Random size for clouds
         cloud_size = random.randint(5, 20)
 
-        # Draw the cloud as a cluster of points
-        color_choice = random.choice([(1.0, 1.0, 1.0), (0.2, 0.2, 0.2)])  # White or black ash cloud
+        color_choice = random.choice([(1.0, 1.0, 1.0), (0.2, 0.2, 0.2)])  
         glColor3f(*color_choice)
 
-        # Generate the cloud by drawing points in a small area around (x, y)
         for i in range(cloud_size):
             for j in range(cloud_size):
-                # Randomly scatter points around the cloud center
-                draw_point(x + random.randint(-5, 5), y + random.randint(-5, 5))  # Cloud point
+               
+                draw_points(x + random.randint(-5, 5), y + random.randint(-5, 5))  
 
 def draw_airplane():
-    """
-    Draws a simple airplane using GL_POINTS.
-    """
+
     airplane_x = random.randint(-window_width, window_width)
     airplane_y = random.randint(window_height // 2, window_height)
 
-    glColor3f(1.0, 1.0, 1.0)  # White for airplane
+    glColor3f(1.0, 1.0, 1.0)  
 
     # Airplane body (represented by points)
-    draw_point(airplane_x, airplane_y)  # Front of airplane (tail)
-    draw_point(airplane_x + 10, airplane_y - 5)  # Back of airplane (body)
+    draw_points(airplane_x, airplane_y)  
+    draw_points(airplane_x + 10, airplane_y - 5)  
 
     # Wings of the airplane (V shape using points)
-    draw_point(airplane_x + 5, airplane_y)  # Left wing
-    draw_point(airplane_x + 5, airplane_y - 10)  # Right wing
-    draw_point(airplane_x + 15, airplane_y - 5)  # Wing connection
+    draw_points(airplane_x + 5, airplane_y)  
+    draw_points(airplane_x + 5, airplane_y - 10)  
+    draw_points(airplane_x + 15, airplane_y - 5)  
 
 def draw_buildings():
-    """
-    Draws the city buildings using multiple buildings with increased height and symmetrical windows.
-    """
+
     building_width_range = (40, 80)
-    building_height_range = (300, 600)  # Increased building height range
+    building_height_range = (300, 600)  
     x = -window_width
 
     while x < window_width:
         width = random.randint(*building_width_range)
         height = random.randint(*building_height_range)
         y = -window_height
-        draw_building(x, y, width, height, lit_ratio=0.03)  # Buildings are drawn as points
-        x += width + random.randint(40, 60)  # Increased gap between buildings to reduce their number
+        draw_building(x, y, width, height, lit_ratio=0.03) 
+        x += width + random.randint(40, 60) 
 
 def draw_city_background():
-    """
-    Entry point to render the city background.
-    Calls other functions to draw the city skyline, clouds, and airplane.
-    """
-    glClear(GL_COLOR_BUFFER_BIT)
-    glBegin(GL_POINTS)
+   
 
-    # Draw buildings using GL_POINTS
     draw_buildings()
 
-    # Draw clouds using GL_POINTS
     draw_clouds()
 
-    # Draw airplane using GL_POINTS
     draw_airplane()
 
-    glEnd()
-    glFlush()
 
 
 #########################################################
@@ -862,32 +835,30 @@ def Click(button, state, x, y):
                     changeLevel(3)
                     intializeLevel()
                     scene = 1
-    # Pause button logic (common across scenes if applicable)
+                    
     middle_button_left_x = middle_button_x - 15
     middle_button_right_x = middle_button_x + 15
 
     if (middle_button_left_x <= xp <= middle_button_right_x and 
         middle_button_bottom_y <= yp <= middle_button_top_y):
-        if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN:  # Check for left mouse button click
+        if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN: 
             paused = not paused
             print(f"Paused state toggled: {paused}")
-        # Left Button Logic (toggle pause on left button click)
     if scene == 1:
-        left_button_top_y = button_top_y  # Use the defined Y values for the left button
+        left_button_top_y = button_top_y 
         left_button_bottom_y = button_bottom_y
-        left_button_left_x = left_button_x  # Use defined X position for the left button
-        left_button_right_x = left_button_x + 50  # Right X of left button
+        left_button_left_x = left_button_x 
+        left_button_right_x = left_button_x + 50  
 
         if (left_button_left_x <= xp <= left_button_right_x and 
             left_button_bottom_y <= yp <= left_button_top_y):
             scene=0
-            # Right Button Logic (toggle pause on right button click)
-        right_button_left_x = right_button_x - 30  # Left X of right button
-        right_button_right_x = right_button_x + 20  # Right X of right button
+        right_button_left_x = right_button_x - 30 
+        right_button_right_x = right_button_x + 20 
 
         if (right_button_left_x <= xp <= right_button_right_x and 
-            button_top_y - 15 <= yp <= button_top_y + 15):  # Check if click is within right button's area
-            if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN:  # Check for left mouse button click
+            button_top_y - 15 <= yp <= button_top_y + 15):
+            if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN:  
                 glutLeaveMainLoop()
     
 
@@ -1015,6 +986,8 @@ def displayKO():
 def displaymenu():
     x_center = W_height//2+50
     y_center = W_width//2
+    
+    draw_city_background()
     
     glColor3f(1,1,1)
     draw_circle(x_center-100, y_center,50,(1,1,1))
