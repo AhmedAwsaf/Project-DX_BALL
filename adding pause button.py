@@ -878,6 +878,16 @@ def Click(button, state, x, y):
         if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN:  # Check for left mouse button click
             paused = not paused
             print(f"Paused state toggled: {paused}")
+        # Left Button Logic (toggle pause on left button click)
+    if scene == 1:
+        left_button_top_y = button_top_y  # Use the defined Y values for the left button
+        left_button_bottom_y = button_bottom_y
+        left_button_left_x = left_button_x  # Use defined X position for the left button
+        left_button_right_x = left_button_x + 50  # Right X of left button
+
+        if (left_button_left_x <= xp <= left_button_right_x and 
+            left_button_bottom_y <= yp <= left_button_top_y):
+            scene=0
     
 
 def animate():
