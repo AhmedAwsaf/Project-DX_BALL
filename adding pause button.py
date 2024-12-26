@@ -196,8 +196,8 @@ scoreboard={
 button_top_y = 570  # Y-position for the top of buttons
 button_bottom_y = 540  # Y-position for the bottom of buttons
 left_button_x = 20  # X-position for the left button
-right_button_x = 750  # X-position for the right button
-middle_button_x = 400  # X-position for the middle button
+right_button_x = 210  # X-position for the right button
+middle_button_x = 110  # X-position for the middle button
 middle_button_top_y = 570  # Y-position for the middle button's top
 middle_button_bottom_y = 540  # Y-position for the middle button's bottom
 
@@ -212,13 +212,6 @@ def draw_buttons():
     def normalize_y(y):
         return W_height - (600 - y) * (W_height / 600)
 
-    button_top_y = 570  # Y-position for the top of buttons
-    button_bottom_y = 540  # Y-position for the bottom of buttons
-    left_button_x = 20  # X-position for the left button
-    right_button_x = 750  # X-position for the right button
-    middle_button_x = 400  # X-position for the middle button
-    middle_button_top_y = 570  # Y-position for the middle button's top
-    middle_button_bottom_y = 540  # Y-position for the middle button's bottom
 
     # Left button
     glPointSize(4)
