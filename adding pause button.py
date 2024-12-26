@@ -193,6 +193,14 @@ scoreboard={
     ],
 }
 #################
+button_top_y = 570  # Y-position for the top of buttons
+button_bottom_y = 540  # Y-position for the bottom of buttons
+left_button_x = 20  # X-position for the left button
+right_button_x = 750  # X-position for the right button
+middle_button_x = 400  # X-position for the middle button
+middle_button_top_y = 570  # Y-position for the middle button's top
+middle_button_bottom_y = 540  # Y-position for the middle button's bottom
+
 def draw_buttons():
     global paused
     W_width = 800
@@ -831,7 +839,7 @@ def keyboard(key, x, y):
             paused = not paused
 
 def Click(button, state, x, y):
-    global W_height,W_width,score,scene
+    global W_height, W_width, score, scene, paused, middle_button_x, middle_button_top_y, middle_button_bottom_y
     xp,yp = x,W_height-y
     x_c,y_c = W_width//2, W_height//2
     if scene == 2:
@@ -861,6 +869,15 @@ def Click(button, state, x, y):
                     changeLevel(3)
                     intializeLevel()
                     scene = 1
+    # Pause button logic (common across scenes if applicable)
+    middle_button_left_x = middle_button_x - 15
+    middle_button_right_x = middle_button_x + 15
+
+    if (middle_button_left_x <= xp <= middle_button_right_x and 
+        middle_button_bottom_y <= yp <= middle_button_top_y):
+        if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN:  # Check for left mouse button click
+            paused = not paused
+            print(f"Paused state toggled: {paused}")
     
 
 def animate():
