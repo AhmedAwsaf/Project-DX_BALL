@@ -10,6 +10,8 @@ A classic *DX Ball*-inspired game developed using Python and the OpenGL library.
 |--------------------|------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
 | **Ahmed Awsaf**    | [![Ahmed's GitHub](https://img.shields.io/badge/-AhmedAwsaf-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AhmedAwsaf) | ![Followers](https://img.shields.io/github/followers/AhmedAwsaf?label=Follow&style=social)          |
 | **Zaima Mashiat**  | [![Zaima's GitHub](https://img.shields.io/badge/-zaimamashiat-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/zaimamashiat) | ![Followers](https://img.shields.io/github/followers/zaimamashiat?label=Follow&style=social)       |
+| **Minhazul Royel**  | [![Royel's GitHub](https://img.shields.io/badge/-MinhazulRoyel-181717?style=for-the-badge&logo=github&logoColor=white)]([https://github.com/zaimamashiat](https://github.com/RoaringRoyel)) | ![Followers](https://img.shields.io/github/followers/RoaringRoyel?label=Follow&style=social)       |
+
 
 </div>
 
