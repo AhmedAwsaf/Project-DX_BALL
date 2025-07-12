@@ -2,8 +2,7 @@
 
 A classic *DX Ball*-inspired game developed using Python and the OpenGL library. This game features physics-based ball mechanics, interactive tiles, and a multi-level progression system that brings the nostalgic gameplay to life.
 
-<img width="1002" height="790" alt="SS1" src="https://github.com/user-attachments/assets/59e38088-3371-4a65-a48c-794f290a5849" />
-
+<div align="center" style="display: flex; justify-content: space-around; flex-wrap: wrap; padding:10px;"> <img src="https://github.com/user-attachments/assets/59e38088-3371-4a65-a48c-794f290a5849" alt="SS1" style="width: 40%; height: auto; padding: 10px;"/> <img src="https://github.com/user-attachments/assets/d3c08548-9466-4bd1-9528-24e04f3e0009" alt="SS3" style="width: 40%; height: auto; padding: 10px;"/> </div>
 
 <div align="center">
 
